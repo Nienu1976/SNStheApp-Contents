@@ -2,12 +2,12 @@
   "packs": [
     {
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack1",
-      "version": "1.1",
+      "version": "1.2",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/quizpack02.zip"
     },
     {
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack2",
-      "version": "1.1",
+      "version": "1.2",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/quizpack3.zip"
     }
   ]
