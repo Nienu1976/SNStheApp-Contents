@@ -2,32 +2,32 @@
   "packs": [
     {
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack1",
-      "version": "1.2",
+      "version": "1.21",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/quizpack02.zip"
     },
     {
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack2",
-      "version": "1.32",
+      "version": "1.33",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/quizpack3.zip"
     },
     {
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack3",
-      "version": "1.01",
+      "version": "1.02",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/quizpack4.zip"
     },
     {
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack4",
-      "version": "1.01",
+      "version": "1.02",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/quizpack5.zip"
     },
     {
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack5",
-      "version": "1.02",
+      "version": "1.03",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/quizpack6.zip"
     },
     {
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack6",
-      "version": "1.00",
+      "version": "1.01",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/quizpack7.zip"
     }
   ]
