@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Accent Tuner - クイズ問い読み音声チューナー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.75);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --accent-hover: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 8px 0;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a5b4fc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .header p {
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-dim);
+      padding: 8px 18px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 18px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    select, button, input {
+      font-family: inherit;
+      font-size: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--text);
+      padding: 8px 14px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    select:focus, input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .btn {
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      transform: translateY(-1px);
+    }
+    .btn-record {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 30px;
+      transition: all 0.2s ease;
+    }
+    .btn-record.recording {
+      animation: pulse 1.2s infinite;
+      background: #b91c1c;
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
+    .btn-secondary {
+      background: rgba(51, 65, 85, 0.8);
+      color: var(--text);
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 18px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    textarea {
+      width: 100%;
+      height: 90px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .pitch-editor {
+      margin-top: 10px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+    }
+    .phrases-container {
+      display: flex;
+      gap: 16px;
+      align-items: flex-end;
+      min-height: 180px;
+      padding: 10px 4px;
+    }
+    .phrase-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 8px;
+    }
+    .moras-row {
+      display: flex;
+      gap: 4px;
+      align-items: flex-end;
+      height: 130px;
+    }
+    .mora-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      width: 28px;
+    }
+    .pitch-slider-wrap {
+      height: 85px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pitch-slider {
+      -webkit-appearance: slider-vertical;
+      width: 16px;
+      height: 80px;
+      background: transparent;
+      cursor: pointer;
+    }
+    .mora-char {
+      font-size: 14px;
+      font-weight: 700;
+      color: #38bdf8;
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+    }
+    .accent-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      text-align: center;
+    }
+
+    .record-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 14px;
+      border: 1px dashed rgba(255, 255, 255, 0.18);
+    }
+    .record-status {
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      background: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎙️ Voice Accent Tuner</h1>
+      <p>声の抑揚・イントネーションを自動解析してVOICEVOXに直接転写・辞書登録</p>
+    </div>
+
+    <!-- タブ切り替え -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tunerTab')">🎯 問題別チューナー (全文)</button>
+      <button class="tab-btn" onclick="switchTab('dictTab')">📕 固有名詞・単語 辞書登録 (単語のみマイクで喋る)</button>
+    </div>
+
+    <!-- TAB 1: 問題別チューナー -->
+    <div id="tunerTab" class="tab-content active">
+      <div class="card">
+        <div class="controls-row">
+          <label><strong>パック:</strong></label>
+          <select id="packSelect">
+            <option value="Pack2" selected>Pack2 (Q1GrandPrix2025Pack2)</option>
+            <option value="Pack1">Pack1 (Q1GrandPrix2025Pack1)</option>
+          </select>
+
+          <label style="margin-left: 10px;"><strong>問題番号:</strong></label>
+          <button class="btn btn-secondary" id="prevBtn">◀ 前へ</button>
+          <select id="questionSelect" style="min-width: 140px;"></select>
+          <button class="btn btn-secondary" id="nextBtn">次へ ▶</button>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <label style="font-size: 13px; color: var(--text-dim); display: block; margin-bottom: 6px;">問題文テキスト:</label>
+          <textarea id="questionText"></textarea>
+        </div>
+
+        <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+          <button class="btn btn-primary" id="parseTextBtn">⚡ テキストから解析更新</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="record-section">
+          <button class="btn btn-record" id="recordBtn">
+            <span id="recordIcon">🎙️</span> <span id="recordText">マイクで喋ってイントネーションを当てる</span>
+          </button>
+          <div class="record-status" id="recordStatus">ボタンを押して、この問題をあなたの声で自然に読んでください（もう一度押すと自動解析・反映）</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong>📊 モーラ別ピッチ・アクセントエディタ</strong>
+          <span style="font-size: 12px; color: var(--text-dim);">スライダーで各音の高さを個別に微調整も可能です</span>
+        </div>
+        <div class="pitch-editor">
+          <div class="phrases-container" id="phrasesContainer">
+            <div style="color: var(--text-dim); padding: 20px;">テキスト解析中...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <button class="btn btn-primary" id="playBtn" style="padding: 12px 24px; font-size: 15px;">
+          ▶️ VOICEVOXで試聴する
+        </button>
+
+        <button class="btn btn-success" id="saveBtn" style="padding: 12px 24px; font-size: 15px;">
+          💾 この問題のmp3に上書き保存 (均一化済)
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 2: 固有名詞・単語 辞書登録 -->
+    <div id="dictTab" class="tab-content">
+      <div class="card">
+        <h3 style="margin-bottom: 8px; font-size: 18px; color: #a5b4fc;">📕 VOICEVOX ユーザー辞書登録（単語マイク吹き込み）</h3>
+        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px;">
+          登録したい単語を入力し、<strong>マイクに向かってその単語だけを喋る</strong>と、声の抑揚からアクセント位置を自動判定して辞書登録します！
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="font-size: 13px; color: var(--text-dim); display: block; margin-bottom: 4px;">単語の表記 (漢字・英字):</label>
+            <input type="text" id="dictSurface" placeholder="例: 吉田初三郎, 観光案内, トランザム" style="width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: 13px; color: var(--text-dim); display: block; margin-bottom: 4px;">カタカナ読み (全角カタカナ):</label>
+            <input type="text" id="dictYomi" placeholder="例: ヨシダハツサブロウ, カンコウアンナイ" style="width: 100%;">
+          </div>
+
+          <!-- 単語用マイク録音エリア -->
+          <div class="record-section" style="padding: 16px;">
+            <button class="btn btn-record" id="dictRecordBtn" style="font-size: 14px; padding: 10px 22px;">
+              <span>🎙️</span> <span id="dictRecordText">この単語だけをマイクで喋る</span>
+            </button>
+            <div class="record-status" id="dictRecordStatus" style="font-size: 12px;">ボタンを押して、上記の単語（例:「吉田初三郎」）だけを喋ってください</div>
+          </div>
+
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <div>
+              <label style="font-size: 13px; color: var(--text-dim); display: block; margin-bottom: 4px;">アクセント位置 (自動判定):</label>
+              <input type="number" id="dictAccent" value="0" min="0" max="20" style="width: 100px;">
+              <span style="font-size: 12px; color: var(--text-dim); margin-left: 6px;">(0 = 平板型, 1以上 = その音で下がる)</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+          <button class="btn btn-primary" id="dictTestBtn">▶️ この単語を試聴</button>
+          <button class="btn btn-success" id="dictRegisterBtn">💾 VOICEVOXユーザー辞書に登録</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">保存が完了しました！</div>
+  <audio id="audioPlayer" style="display:none;"></audio>
+
+  <script>
+    let questionsData = {};
+    let currentQuery = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    let dictMediaRecorder = null;
+    let dictAudioChunks = [];
+    let isDictRecording = false;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    async function init() {
+      const res = await fetch('/api/questions');
+      questionsData = await res.json();
+      populateQuestionSelect();
+      loadCurrentQuestion();
+    }
+
+    function populateQuestionSelect() {
+      const pack = document.getElementById('packSelect').value;
+      const select = document.getElementById('questionSelect');
+      select.innerHTML = '';
+      const list = questionsData[pack] || [];
+      list.forEach(q => {
+        const opt = document.createElement('option');
+        opt.value = q.id;
+        opt.textContent = `${q.id} (${q.genre || ''})`;
+        select.appendChild(opt);
+      });
+    }
+
+    document.getElementById('packSelect').addEventListener('change', () => {
+      populateQuestionSelect();
+      loadCurrentQuestion();
+    });
+
+    document.getElementById('questionSelect').addEventListener('change', loadCurrentQuestion);
+    document.getElementById('prevBtn').addEventListener('click', () => changeQuestionIndex(-1));
+    document.getElementById('nextBtn').addEventListener('click', () => changeQuestionIndex(1));
+
+    function changeQuestionIndex(delta) {
+      const select = document.getElementById('questionSelect');
+      if (select.selectedIndex + delta >= 0 && select.selectedIndex + delta < select.options.length) {
+        select.selectedIndex += delta;
+        loadCurrentQuestion();
+      }
+    }
+
+    async function loadCurrentQuestion() {
+      const pack = document.getElementById('packSelect').value;
+      const qid = document.getElementById('questionSelect').value;
+      const list = questionsData[pack] || [];
+      const item = list.find(q => q.id === qid);
+      if (item) {
+        document.getElementById('questionText').value = item.text;
+        await parseTextToQuery(item.text);
+      }
+    }
+
+    document.getElementById('parseTextBtn').addEventListener('click', () => {
+      const text = document.getElementById('questionText').value;
+      parseTextToQuery(text);
+    });
+
+    async function parseTextToQuery(text) {
+      const res = await fetch('/api/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      currentQuery = await res.json();
+      renderPitchEditor();
+    }
+
+    function renderPitchEditor() {
+      const container = document.getElementById('phrasesContainer');
+      container.innerHTML = '';
+      if (!currentQuery || !currentQuery.accent_phrases) return;
+
+      currentQuery.accent_phrases.forEach((phrase, pIdx) => {
+        const pBlock = document.createElement('div');
+        pBlock.className = 'phrase-block';
+
+        const badge = document.createElement('div');
+        badge.className = 'accent-badge';
+        badge.textContent = `句 ${pIdx + 1} (核: ${phrase.accent})`;
+        pBlock.appendChild(badge);
+
+        const mRow = document.createElement('div');
+        mRow.className = 'moras-row';
+
+        phrase.moras.forEach((mora, mIdx) => {
+          const col = document.createElement('div');
+          col.className = 'mora-column';
+
+          const sliderWrap = document.createElement('div');
+          sliderWrap.className = 'pitch-slider-wrap';
+
+          const slider = document.createElement('input');
+          slider.type = 'range';
+          slider.className = 'pitch-slider';
+          slider.min = '4.0';
+          slider.max = '6.2';
+          slider.step = '0.02';
+          slider.value = mora.pitch > 0 ? mora.pitch : 4.9;
+
+          slider.addEventListener('input', (e) => {
+            mora.pitch = parseFloat(e.target.value);
+          });
+
+          sliderWrap.appendChild(slider);
+          col.appendChild(sliderWrap);
+
+          const charSpan = document.createElement('div');
+          charSpan.className = 'mora-char';
+          charSpan.textContent = mora.text;
+          col.appendChild(charSpan);
+
+          mRow.appendChild(col);
+        });
+
+        pBlock.appendChild(mRow);
+        container.appendChild(pBlock);
+      });
+    }
+
+    // 全文録音 & ピッチ転写
+    const recordBtn = document.getElementById('recordBtn');
+    recordBtn.addEventListener('click', async () => {
+      if (!isRecording) {
+        audioChunks = [];
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = processVoicePitch;
+        mediaRecorder.start();
+        isRecording = true;
+        recordBtn.classList.add('recording');
+        document.getElementById('recordText').textContent = '録音中... (喋り終わったらここを押す)';
+        document.getElementById('recordStatus').textContent = '🔴 あなたの声を録音しています...';
+      } else {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+          mediaRecorder.stream.getTracks().forEach(t => t.stop());
+        }
+        isRecording = false;
+        recordBtn.classList.remove('recording');
+        document.getElementById('recordText').textContent = '解析中...';
+        document.getElementById('recordStatus').textContent = '⏳ ピッチ（F0）を解析してVOICEVOXに転写中...';
+      }
+    });
+
+    async function processVoicePitch() {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = async () => {
+        const base64Data = reader.result.split(',')[1];
+        const res = await fetch('/api/analyze_pitch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            audio_base64: base64Data,
+            query: currentQuery
+          })
+        });
+        currentQuery = await res.json();
+        renderPitchEditor();
+        document.getElementById('recordText').textContent = 'マイクで喋ってイントネーションを当てる';
+        document.getElementById('recordStatus').textContent = '✅ 声のイントネーションを適用しました！「VOICEVOXで試聴する」で確認してください。';
+        playVoicevox();
+      };
+    }
+
+    // 単語用マイク録音 & アクセント核推定
+    const dictRecordBtn = document.getElementById('dictRecordBtn');
+    dictRecordBtn.addEventListener('click', async () => {
+      const yomi = document.getElementById('dictYomi').value.trim();
+      if (!yomi) return alert('先にカタカナ読みを入力してください');
+
+      if (!isDictRecording) {
+        dictAudioChunks = [];
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        dictMediaRecorder = new MediaRecorder(stream);
+        dictMediaRecorder.ondataavailable = e => dictAudioChunks.push(e.data);
+        dictMediaRecorder.onstop = processDictVoice;
+        dictMediaRecorder.start();
+        isDictRecording = true;
+        dictRecordBtn.classList.add('recording');
+        document.getElementById('dictRecordText').textContent = '録音中... (単語を喋ったらここを押す)';
+        document.getElementById('dictRecordStatus').textContent = '🔴 単語の声を録音中...';
+      } else {
+        if (dictMediaRecorder && dictMediaRecorder.state !== 'inactive') {
+          dictMediaRecorder.stop();
+          dictMediaRecorder.stream.getTracks().forEach(t => t.stop());
+        }
+        isDictRecording = false;
+        dictRecordBtn.classList.remove('recording');
+        document.getElementById('dictRecordText').textContent = '解析中...';
+        document.getElementById('dictRecordStatus').textContent = '⏳ 声の高低からアクセントを推定中...';
+      }
+    });
+
+    async function processDictVoice() {
+      const yomi = document.getElementById('dictYomi').value.trim();
+      const blob = new Blob(dictAudioChunks, { type: 'audio/webm' });
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = async () => {
+        const base64Data = reader.result.split(',')[1];
+        const res = await fetch('/api/dict_analyze_voice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            audio_base64: base64Data,
+            yomi: yomi
+          })
+        });
+        const data = await res.json();
+        document.getElementById('dictAccent').value = data.accent_type;
+        document.getElementById('dictRecordText').textContent = 'この単語だけをマイクで喋る';
+        document.getElementById('dictRecordStatus').textContent = `✅ 声からアクセント核 [${data.accent_type}] を検出しました！「▶️ この単語を試聴」で確認できます。`;
+        // 自動試聴
+        testDictWord();
+      };
+    }
+
+    // VOICEVOX再生 (全文)
+    const playBtn = document.getElementById('playBtn');
+    playBtn.addEventListener('click', playVoicevox);
+
+    async function playVoicevox() {
+      if (!currentQuery) return;
+      playBtn.disabled = true;
+      playBtn.textContent = '🔊 合成中...';
+      const res = await fetch('/api/synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentQuery)
+      });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = document.getElementById('audioPlayer');
+      audio.src = url;
+      audio.play();
+      playBtn.disabled = false;
+      playBtn.textContent = '▶️ VOICEVOXで試聴する';
+    }
+
+    // 上書き保存 (全文)
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.addEventListener('click', async () => {
+      if (!currentQuery) return;
+      saveBtn.disabled = true;
+      saveBtn.textContent = '💾 保存中 (音量均一化)...';
+      const pack = document.getElementById('packSelect').value;
+      const qid = document.getElementById('questionSelect').value;
+      const res = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pack: pack,
+          id: qid,
+          query: currentQuery
+        })
+      });
+      const data = await res.json();
+      saveBtn.disabled = false;
+      saveBtn.textContent = '💾 この問題のmp3に上書き保存 (均一化済)';
+      showToast(`${qid}.mp3 に保存・音量均一化しました！`);
+    });
+
+    // 辞書試聴
+    async function testDictWord() {
+      const yomi = document.getElementById('dictYomi').value.trim();
+      const accent = parseInt(document.getElementById('dictAccent').value);
+      if (!yomi) return;
+
+      const res = await fetch('/api/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: yomi })
+      });
+      const q = await res.json();
+      if (q.accent_phrases && q.accent_phrases[0]) {
+        q.accent_phrases[0].accent = accent;
+      }
+      const synRes = await fetch('/api/synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(q)
+      });
+      const blob = await synRes.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = document.getElementById('audioPlayer');
+      audio.src = url;
+      audio.play();
+    }
+
+    document.getElementById('dictTestBtn').addEventListener('click', testDictWord);
+
+    // 辞書登録
+    document.getElementById('dictRegisterBtn').addEventListener('click', async () => {
+      const surface = document.getElementById('dictSurface').value.trim();
+      const yomi = document.getElementById('dictYomi').value.trim();
+      const accent = parseInt(document.getElementById('dictAccent').value);
+      if (!surface || !yomi) return alert('表記と読みを入力してください');
+
+      const res = await fetch('/api/dict_register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          surface: surface,
+          pronunciation: yomi,
+          accent_type: accent,
+          priority: 10
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        showToast(`「${surface}」をVOICEVOX辞書に登録しました！`);
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+
+    init();
+  </script>
+</body>
+</html>

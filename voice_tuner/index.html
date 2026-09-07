@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOICEVOX 声の抑揚チューナー ＆ ユーザー辞書登録</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --accent-red: #ef4444;
+      --accent-green: #22c55e;
+      --accent-purple: #a855f7;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px 16px; display: flex; justify-content: center; }
+    .container { max-width: 860px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+    header { text-align: center; }
+    h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: 6px; }
+    p.desc { font-size: 0.9rem; color: var(--text-dim); }
+    
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    label { font-size: 0.85rem; font-weight: bold; color: var(--text-dim); }
+    input[type="text"], select, input[type="number"] {
+      width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;
+      color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, select:focus { border-color: var(--accent); }
+    
+    .mic-section {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+      background: #0f172a; border: 2px dashed var(--border); border-radius: 12px; padding: 20px;
+    }
+    .mic-btn {
+      width: 76px; height: 76px; border-radius: 50%; background: var(--card-bg); border: 3px solid var(--accent);
+      color: var(--accent); font-size: 2rem; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+    }
+    .mic-btn:hover { background: rgba(56, 189, 248, 0.1); transform: scale(1.05); }
+    .mic-btn.recording {
+      background: var(--accent-red); border-color: #fca5a5; color: white;
+      animation: pulse 1.2s infinite; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .mic-status { font-size: 0.95rem; font-weight: bold; }
+    
+    .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .control-item { display: flex; flex-direction: column; gap: 6px; }
+    .slider-container { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    
+    .graph-container {
+      background: #090d16; border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+      height: 160px; position: relative;
+    }
+    canvas { width: 100%; height: 100%; }
+    
+    .audio-player-card {
+      background: #111e38; border: 1px solid #1e3a8a; border-radius: 10px; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.95rem; transition: 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #0f172a; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-purple { background: var(--accent-purple); color: white; }
+    .btn-purple:hover { background: #9333ea; }
+    .btn-danger { background: #ef4444; color: white; padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; }
+    
+    .mora-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .mora-badge {
+      background: #334155; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .mora-badge .pitch-val { font-size: 0.75rem; color: var(--accent); }
+    .mora-badge.accent-top { border: 1px solid var(--accent-red); background: #451a1a; }
+
+    /* Dict Card */
+    .dict-card {
+      border: 1px solid #6b21a8; background: #1a1528;
+    }
+    .dict-grid { display: grid; grid-template-columns: 2fr 2fr 1fr 1.5fr; gap: 12px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { color: var(--text-dim); }
+    .table-container { max-height: 250px; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🎙️ VOICEVOX 声の抑揚チューナー ＆ 辞書登録</h1>
+    <p class="desc">マイクに向かって声の高低（イントネーション）をつけて喋るだけで、VOICEVOXのユーザー辞書へ一発登録！</p>
+  </header>
+
+  <!-- Step 1: Voice Recording & Tuning -->
+  <div class="card">
+    <div class="control-item">
+      <label>① 読ませたいテキスト / 単語（漢字または仮名）</label>
+      <input type="text" id="targetText" value="観光案内" placeholder="例: 観光案内、源頼朝、攻殻機動隊">
+    </div>
+
+    <div class="mic-section">
+      <button id="micBtn" class="mic-btn">🎤</button>
+      <div id="micStatus" class="mic-status" style="color: var(--text-dim);">マイクボタンを押して発声してください</div>
+      <p style="font-size: 0.8rem; color: var(--text-dim);">※「かん（高）こう（低）あんない」のように、少し大げさに音程の高低をつけると綺麗に解析されます</p>
+    </div>
+
+    <div class="controls-grid">
+      <div class="control-item">
+        <label>抑揚の強調度（感度）: <span id="sensVal">1.3</span>倍</label>
+        <div class="slider-container">
+          <span>自然</span>
+          <input type="range" id="sensRange" min="0.5" max="2.5" step="0.1" value="1.3">
+          <span>強め</span>
+        </div>
+      </div>
+      <div class="control-item" style="justify-content: flex-end;">
+        <button id="reapplyBtn" class="btn btn-primary" style="height: 42px; justify-content: center;">
+          ⚡ スライダー値で再反映・再生
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <label>声のピッチ推移 ＆ VOICEVOXモーラ反映グラフ</label>
+      <div class="graph-container">
+        <canvas id="pitchCanvas"></canvas>
+      </div>
+      <div id="moraContainer" class="mora-badges"></div>
+    </div>
+
+    <div class="audio-player-card">
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <span style="font-size: 0.9rem; font-weight: bold;">🔊 反映後プレビュー音声（男声3）</span>
+        <span id="audioInfo" style="font-size: 0.8rem; color: var(--text-dim);">未生成</span>
+      </div>
+      <audio id="audioPlayer" controls style="height: 38px;"></audio>
+    </div>
+  </div>
+
+  <!-- Step 2: User Dict Registration -->
+  <div class="card dict-card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 1.2rem; color: #c084fc;">📖 ② VOICEVOX ユーザー辞書に登録</h2>
+      <span style="font-size: 0.8rem; color: var(--text-dim);">マイクで喋ると自動入力されます</span>
+    </div>
+
+    <div class="dict-grid">
+      <div class="control-item">
+        <label>表記 (surface)</label>
+        <input type="text" id="dictSurface" placeholder="例: 観光案内">
+      </div>
+      <div class="control-item">
+        <label>読みカタカナ (pronunciation)</label>
+        <input type="text" id="dictPronunciation" placeholder="例: カンコーアンナイ">
+      </div>
+      <div class="control-item">
+        <label>アクセント位置 (核)</label>
+        <input type="number" id="dictAccent" min="0" max="20" value="0">
+      </div>
+      <div class="control-item">
+        <label>品詞</label>
+        <select id="dictWordType">
+          <option value="PROPER_NOUN" selected>固有名詞</option>
+          <option value="COMMON_NOUN">普通名詞</option>
+          <option value="VERB">動詞</option>
+          <option value="ADJECTIVE">形容詞</option>
+          <option value="SUFFIX">接尾辞</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="registerDictBtn" class="btn btn-purple" style="justify-content: center; height: 46px; font-size: 1.05rem;">
+      💾 このイントネーションでVOICEVOXユーザー辞書に登録する
+    </button>
+    <div id="dictStatus" style="font-size: 0.85rem; text-align: center; color: var(--accent-green);"></div>
+
+    <!-- Dict Search & List -->
+    <div style="margin-top: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <label>登録済み単語一覧 (検索・削除)</label>
+        <input type="text" id="searchDict" placeholder="単語を検索..." style="width: 200px; padding: 6px 10px; font-size: 0.85rem;">
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>表記</th>
+              <th>読み</th>
+              <th>アクセント型</th>
+              <th>品詞</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="dictTableBody">
+            <tr><td colspan="5" style="text-align: center; color: var(--text-dim);">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let isRecording = false;
+let audioContext = null;
+let scriptNode = null;
+let micStream = null;
+let recordedBuffers = [];
+let sampleRate = 16000;
+let lastRecordedWavB64 = null;
+let currentQueryData = null;
+let userDictData = {};
+
+const micBtn = document.getElementById("micBtn");
+const micStatus = document.getElementById("micStatus");
+const targetText = document.getElementById("targetText");
+const sensRange = document.getElementById("sensRange");
+const sensVal = document.getElementById("sensVal");
+const reapplyBtn = document.getElementById("reapplyBtn");
+const audioPlayer = document.getElementById("audioPlayer");
+const audioInfo = document.getElementById("audioInfo");
+const pitchCanvas = document.getElementById("pitchCanvas");
+const moraContainer = document.getElementById("moraContainer");
+
+const dictSurface = document.getElementById("dictSurface");
+const dictPronunciation = document.getElementById("dictPronunciation");
+const dictAccent = document.getElementById("dictAccent");
+const dictWordType = document.getElementById("dictWordType");
+const registerDictBtn = document.getElementById("registerDictBtn");
+const dictStatus = document.getElementById("dictStatus");
+const dictTableBody = document.getElementById("dictTableBody");
+const searchDict = document.getElementById("searchDict");
+
+sensRange.addEventListener("input", () => {
+  sensVal.innerText = sensRange.value;
+});
+
+micBtn.addEventListener("click", toggleRecording);
+reapplyBtn.addEventListener("click", sendVoiceData);
+registerDictBtn.addEventListener("click", registerToDict);
+searchDict.addEventListener("input", renderDictTable);
+
+// Load dictionary on startup
+loadUserDict();
+
+async function toggleRecording() {
+  if (!isRecording) {
+    startRecording();
+  } else {
+    stopRecording();
+  }
+}
+
+async function startRecording() {
+  recordedBuffers = [];
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    sampleRate = audioContext.sampleRate;
+    
+    const source = audioContext.createMediaStreamSource(micStream);
+    scriptNode = audioContext.createScriptProcessor(4096, 1, 1);
+    
+    scriptNode.onaudioprocess = (e) => {
+      if (!isRecording) return;
+      const input = e.inputBuffer.getChannelData(0);
+      recordedBuffers.push(new Float32Array(input));
+    };
+    
+    source.connect(scriptNode);
+    scriptNode.connect(audioContext.destination);
+    
+    isRecording = true;
+    micBtn.classList.add("recording");
+    micStatus.innerText = "🔴 録音中... 声を出してください（もう一度押して完了）";
+    micStatus.style.color = "var(--accent-red)";
+  } catch (err) {
+    alert("マイクのアクセスに失敗しました: " + err);
+  }
+}
+
+function stopRecording() {
+  if (!isRecording) return;
+  isRecording = false;
+  micBtn.classList.remove("recording");
+  micStatus.innerText = "⏳ 解析中...";
+  micStatus.style.color = "var(--accent)";
+  
+  if (micStream) {
+    micStream.getTracks().forEach(t => t.stop());
+  }
+  if (audioContext) {
+    audioContext.close();
+  }
+  
+  const totalLength = recordedBuffers.reduce((acc, b) => acc + b.length, 0);
+  const fullBuffer = new Float32Array(totalLength);
+  let offset = 0;
+  for (const b of recordedBuffers) {
+    fullBuffer.set(b, offset);
+    offset += b.length;
+  }
+  
+  const wavBlob = exportWAV(fullBuffer, sampleRate);
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const base64data = reader.result.split(',')[1];
+    lastRecordedWavB64 = base64data;
+    sendVoiceData();
+  };
+  reader.readAsDataURL(wavBlob);
+}
+
+function exportWAV(samples, sr) {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+  
+  const writeString = (view, offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+  
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sr, true);
+  view.setUint32(28, sr * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, samples.length * 2, true);
+  
+  let idx = 44;
+  for (let i = 0; i < samples.length; i++, idx += 2) {
+    let s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(idx, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
+async function sendVoiceData() {
+  if (!lastRecordedWavB64) {
+    alert("まずはマイクで録音してください。");
+    return;
+  }
+  
+  micStatus.innerText = "⏳ VOICEVOXへ声の高低をダイレクト反映中...";
+  micStatus.style.color = "var(--accent)";
+  
+  try {
+    const res = await fetch("/api/process_voice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: targetText.value,
+        wav_base64: lastRecordedWavB64,
+        sensitivity: parseFloat(sensRange.value)
+      })
+    });
+    
+    const data = await res.json();
+    currentQueryData = data.query;
+    
+    micStatus.innerText = `✅ 反映完了！(F0サンプル: ${data.f0_count}, 検出アクセント: ${data.detected_accent}拍目)`;
+    micStatus.style.color = "var(--accent-green)";
+    audioInfo.innerText = "スピーカー: 男声3 (Speed: 0.85)";
+    
+    // Auto-fill dictionary form
+    dictSurface.value = targetText.value;
+    dictPronunciation.value = data.suggested_pronunciation || "";
+    dictAccent.value = data.detected_accent;
+    
+    // Play audio
+    const audioSrc = "data:audio/wav;base64," + data.audio_base64;
+    audioPlayer.src = audioSrc;
+    audioPlayer.play();
+    
+    // Draw graph & badges
+    drawPitchGraph(data.f0_points, currentQueryData);
+    renderMoraBadges(currentQueryData);
+  } catch (err) {
+    micStatus.innerText = "❌ 反映エラー: " + err;
+    micStatus.style.color = "var(--accent-red)";
+  }
+}
+
+async function registerToDict() {
+  const surface = dictSurface.value.trim();
+  const pronunciation = dictPronunciation.value.trim();
+  const accent = parseInt(dictAccent.value);
+  const wordType = dictWordType.value;
+  
+  if (!surface || !pronunciation) {
+    alert("表記と読みカタカナを入力してください。");
+    return;
+  }
+  
+  dictStatus.innerText = "⏳ 辞書に登録中...";
+  try {
+    const res = await fetch("/api/add_dict_word", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        surface: surface,
+        pronunciation: pronunciation,
+        accent_type: accent,
+        word_type: wordType,
+        priority: 10
+      })
+    });
+    const result = await res.json();
+    if (result.status === "ok") {
+      dictStatus.innerText = `🎉 『${surface}』(${pronunciation}, アクセント${accent}) をVOICEVOXユーザー辞書に登録しました！`;
+      loadUserDict();
+    } else {
+      dictStatus.innerText = "登録失敗: " + JSON.stringify(result);
+    }
+  } catch (err) {
+    dictStatus.innerText = "エラー: " + err;
+  }
+}
+
+async function loadUserDict() {
+  try {
+    const res = await fetch("/api/user_dict");
+    userDictData = await res.json();
+    renderDictTable();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function renderDictTable() {
+  const query = searchDict.value.trim().toLowerCase();
+  dictTableBody.innerHTML = "";
+  
+  const entries = Object.entries(userDictData);
+  const filtered = entries.filter(([uuid, item]) => {
+    if (!query) return true;
+    return (item.surface && item.surface.toLowerCase().includes(query)) ||
+           (item.pronunciation && item.pronunciation.toLowerCase().includes(query));
+  });
+  
+  if (filtered.length === 0) {
+    dictTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-dim);">登録単語がありません</td></tr>`;
+    return;
+  }
+  
+  // Show newest first (reverse)
+  filtered.reverse().slice(0, 100).forEach(([uuid, item]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${item.surface}</strong></td>
+      <td>${item.pronunciation}</td>
+      <td>${item.accent_type === 0 ? "0 (平板型)" : item.accent_type + "拍目下がり"}</td>
+      <td>${item.part_of_speech_detail_1 || "固有名詞"}</td>
+      <td><button class="btn btn-danger" onclick="deleteWord('${uuid}', '${item.surface}')">削除</button></td>
+    `;
+    dictTableBody.appendChild(tr);
+  });
+}
+
+async function deleteWord(uuid, name) {
+  if (!confirm(`『${name}』をユーザー辞書から削除しますか？`)) return;
+  try {
+    const res = await fetch("/api/delete_dict_word", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uuid: uuid })
+    });
+    loadUserDict();
+  } catch (err) {
+    alert("削除エラー: " + err);
+  }
+}
+
+function renderMoraBadges(query) {
+  moraContainer.innerHTML = "";
+  if (!query || !query.accent_phrases) return;
+  
+  query.accent_phrases.forEach((phrase, pIdx) => {
+    phrase.moras.forEach((mora, mIdx) => {
+      const isAccentPeak = (phrase.accent === (mIdx + 1));
+      const badge = document.createElement("div");
+      badge.className = "mora-badge" + (isAccentPeak ? " accent-top" : "");
+      badge.innerHTML = `
+        <span>${mora.text}</span>
+        <span class="pitch-val">${mora.pitch.toFixed(2)}</span>
+      `;
+      moraContainer.appendChild(badge);
+    });
+  });
+}
+
+function drawPitchGraph(f0Points, query) {
+  const ctx = pitchCanvas.getContext("2d");
+  const w = pitchCanvas.width = pitchCanvas.parentElement.clientWidth;
+  const h = pitchCanvas.height = pitchCanvas.parentElement.clientHeight;
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  ctx.strokeStyle = "#1e293b";
+  ctx.lineWidth = 1;
+  for (let y = 30; y < h; y += 35) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+  
+  if (f0Points && f0Points.length > 1) {
+    const minF = Math.min(...f0Points) * 0.9;
+    const maxF = Math.max(...f0Points) * 1.1;
+    
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    f0Points.forEach((f, i) => {
+      const x = (i / (f0Points.length - 1)) * (w - 40) + 20;
+      const y = h - ((f - minF) / (maxF - minF || 1)) * (h - 40) - 20;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+  
+  if (query && query.accent_phrases) {
+    const moras = [];
+    query.accent_phrases.forEach(p => p.moras.forEach(m => moras.push(m)));
+    if (moras.length > 0) {
+      const pitches = moras.map(m => m.pitch);
+      const minP = Math.min(...pitches) - 0.2;
+      const maxP = Math.max(...pitches) + 0.2;
+      
+      ctx.fillStyle = "#fb923c";
+      moras.forEach((m, i) => {
+        const x = (i / Math.max(1, moras.length - 1)) * (w - 60) + 30;
+        const y = h - ((m.pitch - minP) / (maxP - minP || 1)) * (h - 50) - 25;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 12px sans-serif";
+        ctx.fillText(m.text, x - 5, y - 10);
+        ctx.fillStyle = "#fb923c";
+      });
+    }
+  }
+}
+</script>
+
+</body>
+</html>
