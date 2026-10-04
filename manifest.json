@@ -90,5 +90,72 @@
       "version": "1.0.0",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/BasicPack2.zip"
     }
+  ],
+  "samples": [
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack1",
+      "version": "1.22",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/quizpack1.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack2",
+      "version": "1.33",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/quizpack2.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack3",
+      "version": "1.03",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/quizpack3.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack4",
+      "version": "1.03",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/quizpack4.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack5",
+      "version": "1.08",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/quizpack5.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.quizpack6",
+      "version": "1.02",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/quizpack6.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.unlockallquestions",
+      "version": "1.0.4+1.0.5+1.0.6",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/unlockallquestions.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.Thecorrective1",
+      "version": "1.1.1",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/Thecorrective1.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.q1gpx1",
+      "version": "1.0.6",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/q1gpx1.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.q1gpx2",
+      "version": "1.0.7",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/q1gpx2.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.kotaebapack1",
+      "version": "1.0.8",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/kotaebapack1.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.shoqkingpack1",
+      "version": "1.0.0+1.0.0",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/shoqkingpack1.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.basicpack2",
+      "version": "1.0.0",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/basicpack2.zip"
+    }
   ]
 }
