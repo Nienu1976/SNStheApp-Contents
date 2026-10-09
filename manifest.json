@@ -176,6 +176,16 @@
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.basicpack2",
       "version": "1.0.0",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/basicpack2.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.atozpack1",
+      "version": "1.0.0+1.0.0+1.0.0",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/atozpack1.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.atozpack2",
+      "version": "1.0.0",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/atozpack2.zip"
     }
   ]
 }
