@@ -109,6 +109,11 @@
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.atozpack2",
       "version": "1.0.0",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/AtoZPack2.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.highlevelpack1",
+      "version": "1.0.0",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/HighLevelPack1.zip"
     }
   ],
   "samples": [
@@ -186,6 +191,11 @@
       "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.atozpack2",
       "version": "1.0.0",
       "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/atozpack2.zip"
+    },
+    {
+      "id": "com.ATTENTION_SEEKING_MONSTERS.SNStheApp.highlevelpack1",
+      "version": "1.0.0",
+      "url": "https://nienu1976.github.io/SNStheApp-Contents/samples/highlevelpack1.zip"
     }
   ],
   "tournaments": [
